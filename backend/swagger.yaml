@@ -1,0 +1,137 @@
+openapi: "3.0.0"
+info:
+  title: "Personal Finance Tracker API"
+  version: "1.0.0"
+  description: "API documentation for the Personal Finance Tracker system."
+
+servers:
+  - url: "http://localhost:5000"
+    description: "Local development server"
+
+paths:
+  /api/auth/register:
+    post:
+      summary: "Register a new user"
+      description: "Creates a new user account."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "201":
+          description: "User registered successfully"
+        "400":
+          description: "Bad request - User already exists"
+
+  /api/auth/login:
+    post:
+      summary: "User login"
+      description: "Authenticates a user and returns a JWT token."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: "Login successful - JWT token returned"
+        "400":
+          description: "Invalid credentials"
+
+  /api/transactions:
+    get:
+      summary: "Get all transactions"
+      description: "Returns a list of transactions for the authenticated user."
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "List of transactions returned successfully"
+        "401":
+          description: "Unauthorized - Token required"
+
+    post:
+      summary: "Create a transaction"
+      description: "Adds a new transaction (income or expense) for the user."
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: ["income", "expense"]
+                category:
+                  type: string
+                amount:
+                  type: number
+                notes:
+                  type: string
+      responses:
+        "201":
+          description: "Transaction created successfully"
+        "400":
+          description: "Bad request - Missing required fields"
+
+  /api/budgets/:
+    get:
+      summary: "Get all budgets"
+      description: "Returns a list of budgets for the authenticated user."
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "List of budgets returned successfully"
+        "401":
+          description: "Unauthorized - Token required"
+
+    post:
+      summary: "Create a budget"
+      description: "Adds a new budget for the user."
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string
+                limit:
+                  type: number
+                month:
+                  type: string  
+                  Format: MM-YYYY
+      responses:
+        "201":
+          description: "Budget created successfully"
+        "400":
+          description: "Bad request - Missing required fields"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

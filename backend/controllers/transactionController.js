@@ -1,4 +1,53 @@
 const Transaction = require("../models/Transaction");
+const Budget = require("../models/Budget");
+
+const currentDate = new Date();
+const currentMonth = currentDate.toLocaleString("default", {
+  month: "long",
+});
+const currentYear = currentDate.getFullYear();
+const currentMonthYear = `${currentMonth}-${currentYear}`;
+
+// exports.createTransaction = async (req, res) => {
+//   try {
+//     const currentDate = new Date();
+//     const currentMonth = currentDate.toLocaleString("default", {
+//       month: "long",
+//     });
+//     const currentYear = currentDate.getFullYear();
+//     const currentMonthYear = `${currentMonth}-${currentYear}`;
+//     const { type, category, amount, notes } = req.body;
+
+//     const transaction = new Transaction({
+//       userId: req.user.id,
+//       type,
+//       category,
+//       amount,
+//       notes,
+//     });
+
+//     await transaction.save();
+
+//     const budget = await Budget.findOne({
+//       userId: req.user.id,
+//       category: req.body.category,
+//       month: currentMonthYear,
+//     });
+
+//     if (budget) {
+//       budget.spent += req.body.amount;
+//       await budget.save();
+
+//       if (budget.spent > budget.limit) {
+//         console.log("Warning: Budget exceeded for", budget.category);
+//       }
+//     }
+
+//     res.status(201).json(transaction);
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 
 exports.createTransaction = async (req, res) => {
   try {
@@ -10,9 +59,26 @@ exports.createTransaction = async (req, res) => {
       category,
       amount,
       notes,
+      date: new Date(),
     });
 
     await transaction.save();
+
+    const budget = await Budget.findOne({
+      userId: req.user.id,
+      category,
+      month: currentMonthYear,
+    });
+
+    if (budget) {
+      budget.spent += amount;
+      await budget.save();
+
+      if (budget.spent > budget.limit) {
+        console.log("Warning: Budget exceeded for", budget.category);
+      }
+    }
+
     res.status(201).json(transaction);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -23,6 +89,108 @@ exports.getTransactions = async (req, res) => {
   try {
     const transactions = await Transaction.find({ userId: req.user.id });
     res.status(200).json(transactions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getTransactionById = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    res.status(200).json(transaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateTransaction = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    const { type, category, amount, notes, date } = req.body;
+    const prvAmnt = transaction.amount;
+
+    transaction.type = type;
+    transaction.category = category;
+    transaction.amount = amount;
+    transaction.notes = notes;
+    transaction.date = new Date(date);
+
+    await transaction.save();
+
+    const amountDifference = amount - prvAmnt;
+
+    const budget = await Budget.findOne({
+      userId: req.user.id,
+      category,
+      month: `${transaction.date.toLocaleString("default", {
+        month: "long",
+      })}-${transaction.date.getFullYear()}`,
+    });
+
+    if (budget) {
+      budget.spent += amountDifference;
+      await budget.save();
+
+      if (budget.spent > budget.limit) {
+        console.log("Warning: Budget exceeded for", budget.category);
+      }
+    }
+
+    res.status(200).json(transaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteTransaction = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    const { category } = transaction;
+
+    await transaction.remove();
+
+    const budget = await Budget.findOne({
+      userId: req.user.id,
+      category,
+      month: `${transaction.date.toLocaleString("default", {
+        month: "long",
+      })}-${transaction.date.getFullYear()}`,
+    });
+
+    if (budget) {
+      budget.spent -= transaction.amount;
+      await budget.save();
+
+      if (budget.spent > budget.limit) {
+        console.log("Warning: Budget exceeded for", budget.category);
+      }
+    }
+
+    res.status(204).json();
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
