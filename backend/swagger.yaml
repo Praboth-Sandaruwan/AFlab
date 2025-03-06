@@ -45,8 +45,10 @@ paths:
               properties:
                 email:
                   type: string
+                  example: "Praboth@gmail.com"
                 password:
                   type: string
+                  example: "Praboth123"
       responses:
         "200":
           description: "Login successful - JWT token returned"
@@ -92,6 +94,169 @@ paths:
         "400":
           description: "Bad request - Missing required fields"
 
+  /api/transactions/{id}:
+    get:
+      summary: "Get One transaction of the authenticated user by id"
+      description: "Returns a transactions for the authenticated user."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the transaction to retrieve"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Transaction returned successfully"
+        "401":
+          description: "Unauthorized - Token required"
+        "404":
+          description: "Transaction not found"
+
+    put:
+      summary: "Update a transaction of the authenticated user by id"
+      description: "Updates an existing transaction for the user."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the transaction to update"
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: ["income", "expense"]
+                category:
+                  type: string
+                amount:
+                  type: number
+                notes:
+                  type: string
+      responses:
+        "200":
+          description: "Transaction updated successfully"
+        "400":
+          description: "Bad request - Missing required fields"
+        "401":
+          description: "Unauthorized - Token required"
+        "404":
+          description: "Transaction not found"
+
+    delete:
+      summary: "Delete a transaction of the authenticated user by id"
+      description: "Deletes an existing transaction for the user."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the transaction to delete"
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "Transaction deleted successfully"
+        "401":
+          description: "Unauthorized - Token required"
+        "404":
+          description: "Transaction not found"
+
+  /api/transactions/{id}/tags:
+    put:
+      summary: "Add a tag to a transaction"
+      description: "Adds a tag to an existing transaction for the user."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the transaction to update"
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tags:
+                  type: string
+                  description: "The tag to add to the transaction"
+                  example: ["groceries", "fun"]
+      responses:
+        "200":
+          description: "Tag added successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tag added successfully"
+        "400":
+          description: "Bad request - Missing required fields"
+        "401":
+          description: "Unauthorized - Token required"
+        "404":
+          description: "Transaction not found"
+
+  /api/transactions/{id}/tags:
+    delete:
+      summary: "Remove a tag from a transaction"
+      description: "Removes a tag from an existing transaction for the user."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the transaction to update"
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tagname:
+                  type: string
+                  description: "The tag to remove from the transaction"
+                  example: "groceries"
+      responses:
+        "200":
+          description: "Tag removed successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tag removed successfully"
+        "400":
+          description: "Bad request - Missing required fields"
+        "401":
+          description: "Unauthorized - Token required"
+        "404":
+          description: "Transaction not found"
+
   /api/budgets/:
     get:
       summary: "Get all budgets"
@@ -121,7 +286,7 @@ paths:
                 limit:
                   type: number
                 month:
-                  type: string  
+                  type: string
                   Format: MM-YYYY
       responses:
         "201":

@@ -125,11 +125,11 @@ exports.updateTransaction = async (req, res) => {
     const { type, category, amount, notes, date } = req.body;
     const prvAmnt = transaction.amount;
 
-    transaction.type = type;
-    transaction.category = category;
-    transaction.amount = amount;
-    transaction.notes = notes;
-    transaction.date = new Date(date);
+    transaction.type = type || transaction.type;
+    transaction.category = category || transaction.category;
+    transaction.amount = amount ?? transaction.amount;
+    transaction.notes = notes || transaction.notes;
+    transaction.date = date || transaction.date;
 
     await transaction.save();
 
@@ -171,7 +171,7 @@ exports.deleteTransaction = async (req, res) => {
 
     const { category } = transaction;
 
-    await transaction.remove();
+    await transaction.deleteOne();
 
     const budget = await Budget.findOne({
       userId: req.user.id,
@@ -191,6 +191,51 @@ exports.deleteTransaction = async (req, res) => {
     }
 
     res.status(204).json();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.addTags = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    const { tags } = req.body;
+
+    transaction.tags = tags;
+
+    await transaction.save();
+
+    res.status(200).json(transaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.removeTagByName = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    const tagName = req.body.tagName;
+    transaction.tags = transaction.tags.filter((tag) => tag !== tagName);
+
+    await transaction.save();
+
+    res.status(200).json(transaction);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
