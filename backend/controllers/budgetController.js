@@ -103,3 +103,15 @@ exports.updateAnyBudget = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.getAnyBudget = async (req, res) => {
+  try {
+    const budget = await Budget.findById(req.params.id);
+    if (!budget) {
+      return res.status(404).json({ message: "Budget not found" });
+    }
+    res.status(200).json(budget);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
