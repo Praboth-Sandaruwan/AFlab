@@ -94,26 +94,40 @@ exports.updateTransaction = async (req, res) => {
 
     const amountDifference = amount - prvAmnt;
 
-    const budget = await Budget.findOne({
-      userId: req.user.id,
+    await updateBudget(
+      req.user.id,
       category,
-      month: `${transaction.date.toLocaleString("default", {
-        month: "long",
-      })}-${transaction.date.getFullYear()}`,
-    });
-
-    if (budget) {
-      budget.spent += amountDifference;
-      await budget.save();
-
-      if (budget.spent > budget.limit) {
-        console.log("Warning: Budget exceeded for", budget.category);
-      }
-    }
+      amountDifference,
+      transaction.date
+    );
 
     res.status(200).json(transaction);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+const updateBudget = async (
+  userId,
+  category,
+  amountDifference,
+  transactionDate
+) => {
+  const budget = await Budget.findOne({
+    userId,
+    category,
+    month: `${transactionDate.toLocaleString("default", {
+      month: "long",
+    })}-${transactionDate.getFullYear()}`,
+  });
+
+  if (budget) {
+    budget.spent += amountDifference;
+    await budget.save();
+
+    if (budget.spent > budget.limit) {
+      console.log("Warning: Budget exceeded for", budget.category);
+    }
   }
 };
 
@@ -239,6 +253,12 @@ exports.deleteAnyTransaction = async (req, res) => {
 };
 
 exports.updateAnyTransaction = async (req, res) => {
+
+  let prvAmnt;
+  let uid;
+  let categor;
+  let transactionDate;
+
   try {
     const transaction = await Transaction.findOne({
       _id: req.params.id,
@@ -246,13 +266,31 @@ exports.updateAnyTransaction = async (req, res) => {
     if (!transaction) {
       return res.status(404).json({ message: "Transaction not found" });
     }
-    const { type, category, amount, notes, date } = req.body;
+
+    prvAmnt = transaction.amount;
+    uid = transaction.userId;
+    categor = transaction.category;
+    transactionDate = transaction.date;
+
+    const { type, category, amount, notes, date, } = req.body;
+
+    const amountDifference = amount - prvAmnt;
+
     transaction.type = type || transaction.type;
     transaction.category = category || transaction.category;
     transaction.amount = amount ?? transaction.amount;
     transaction.notes = notes || transaction.notes;
     transaction.date = date || transaction.date;
+
     await transaction.save();
+
+    await updateBudget(
+      uid,
+      categor,
+      amountDifference,
+      transactionDate
+    );
+
     res.status(200).json(transaction);
   } catch (error) {
     res.status(500).json({ message: error.message });

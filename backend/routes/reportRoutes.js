@@ -1,8 +1,8 @@
 const express = require("express");
 const { authMiddleware } = require("../middleware/authMiddleware");
-const { getMonthlyReport } = require("../controllers/reportController");
+const { generateMonthlyReport } = require("../controllers/reportController");
 
 const router = express.Router();
-router.get("/monthly", authMiddleware, getMonthlyReport);
+router.get("/monthly", authMiddleware, generateMonthlyReport );
 
 module.exports = router;
