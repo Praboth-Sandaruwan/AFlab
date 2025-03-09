@@ -8,9 +8,19 @@ servers:
   - url: "http://localhost:5000"
     description: "Local development server"
 
+tags:
+  - name: "User Authentication"
+    description: "Endpoints related to user authentication"
+  - name: "User Transactions"
+    description: "Endpoints for managing transactions for user"
+  - name: "User Budgets"
+    description: "Endpoints for managing budgets for user"
+
 paths:
   /api/auth/register:
     post:
+      tags:
+        - "User Authentication"
       summary: "Register a new user"
       description: "Creates a new user account."
       requestBody:
@@ -34,6 +44,8 @@ paths:
 
   /api/auth/login:
     post:
+      tags:
+        - "User Authentication"
       summary: "User login"
       description: "Authenticates a user and returns a JWT token."
       requestBody:
@@ -57,6 +69,8 @@ paths:
 
   /api/transactions:
     get:
+      tags:
+        - "User Transactions"
       summary: "Get all transactions"
       description: "Returns a list of transactions for the authenticated user."
       security:
@@ -68,6 +82,8 @@ paths:
           description: "Unauthorized - Token required"
 
     post:
+      tags:
+        - "User Transactions"
       summary: "Create a transaction"
       description: "Adds a new transaction (income or expense) for the user."
       security:
@@ -96,6 +112,8 @@ paths:
 
   /api/transactions/{id}:
     get:
+      tags:
+        - "User Transactions"
       summary: "Get One transaction of the authenticated user by id"
       description: "Returns a transactions for the authenticated user."
       security:
@@ -116,6 +134,8 @@ paths:
           description: "Transaction not found"
 
     put:
+      tags:
+        - "User Transactions"
       summary: "Update a transaction of the authenticated user by id"
       description: "Updates an existing transaction for the user."
       security:
@@ -154,6 +174,8 @@ paths:
           description: "Transaction not found"
 
     delete:
+      tags:
+        - "User Transactions"
       summary: "Delete a transaction of the authenticated user by id"
       description: "Deletes an existing transaction for the user."
       security:
@@ -175,6 +197,8 @@ paths:
 
   /api/transactions/{id}/tags:
     put:
+      tags:
+        - "User Transactions"
       summary: "Add a tag to a transaction"
       description: "Adds a tag to an existing transaction for the user."
       security:
@@ -217,6 +241,8 @@ paths:
 
   /api/transactions/{id}/tags:
     delete:
+      tags:
+        - "User Transactions"
       summary: "Remove a tag from a transaction"
       description: "Removes a tag from an existing transaction for the user."
       security:
@@ -259,6 +285,8 @@ paths:
 
   /api/budgets/:
     get:
+      tags:
+        - "User Budgets"
       summary: "Get all budgets"
       description: "Returns a list of budgets for the authenticated user."
       security:
@@ -270,6 +298,8 @@ paths:
           description: "Unauthorized - Token required"
 
     post:
+      tags:
+        - "User Budgets"
       summary: "Create a budget"
       description: "Adds a new budget for the user."
       security:
@@ -294,6 +324,89 @@ paths:
         "400":
           description: "Bad request - Missing required fields"
 
+  /api/budgets/{id}:
+    get:
+      tags:
+        - "User Budgets"
+      summary: "Get One budget of the authenticated user by id"
+      description: "Returns a budget for the authenticated user."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the budget to retrieve"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Budget returned successfully"
+        "401":
+          description: "Unauthorized - Token required"
+        "404":
+          description: "Budget not found"
+
+    put:
+      tags:
+        - "User Budgets"
+      summary: "Update a budget of the authenticated user by id"
+      description: "Updates an existing budget for the user."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the budget to update"
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string
+                limit:
+                  type: number
+                month:
+                  type: string
+                  Format: MM-YYYY
+      responses:
+        "200":
+          description: "Budget updated successfully"
+        "400":
+          description: "Bad request - Missing required fields"
+        "401":
+          description: "Unauthorized - Token required"
+        "404":
+          description: "Budget not found"
+
+    delete:
+      tags:
+        - "User Budgets"
+      summary: "Delete a budget of the authenticated user by id"
+      description: "Deletes an existing budget for the user."
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID of the budget to delete"
+          schema:
+            type: string
+      responses:
+        "204":
+          description: "Budget deleted successfully"
+        "401":
+          description: "Unauthorized - Token required"
+        "404":
+          description: "Budget not found"
+          
 components:
   securitySchemes:
     bearerAuth:
