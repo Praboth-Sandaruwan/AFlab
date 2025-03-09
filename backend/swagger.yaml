@@ -406,7 +406,46 @@ paths:
           description: "Unauthorized - Token required"
         "404":
           description: "Budget not found"
-          
+
+  /api/currencyEx/:
+    get:
+      summary: Get exchange rate
+      description: Fetch the exchange rate between the base and target currencies.
+      parameters:
+        - in: query
+          name: base
+          required: true
+          schema:
+            type: string
+          description: The base currency code (e.g., LKR).
+        - in: query
+          name: target
+          required: true
+          schema:
+            type: string
+          description: The target currency code (e.g., USD).
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rate:
+                    type: number
+                    example: 0.85
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to fetch exchange rate
+
 components:
   securitySchemes:
     bearerAuth:

@@ -8,47 +8,6 @@ const currentMonth = currentDate.toLocaleString("default", {
 const currentYear = currentDate.getFullYear();
 const currentMonthYear = `${currentMonth}-${currentYear}`;
 
-// exports.createTransaction = async (req, res) => {
-//   try {
-//     const currentDate = new Date();
-//     const currentMonth = currentDate.toLocaleString("default", {
-//       month: "long",
-//     });
-//     const currentYear = currentDate.getFullYear();
-//     const currentMonthYear = `${currentMonth}-${currentYear}`;
-//     const { type, category, amount, notes } = req.body;
-
-//     const transaction = new Transaction({
-//       userId: req.user.id,
-//       type,
-//       category,
-//       amount,
-//       notes,
-//     });
-
-//     await transaction.save();
-
-//     const budget = await Budget.findOne({
-//       userId: req.user.id,
-//       category: req.body.category,
-//       month: currentMonthYear,
-//     });
-
-//     if (budget) {
-//       budget.spent += req.body.amount;
-//       await budget.save();
-
-//       if (budget.spent > budget.limit) {
-//         console.log("Warning: Budget exceeded for", budget.category);
-//       }
-//     }
-
-//     res.status(201).json(transaction);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
 exports.createTransaction = async (req, res) => {
   try {
     const { type, category, amount, notes } = req.body;
@@ -235,6 +194,65 @@ exports.removeTagByName = async (req, res) => {
 
     await transaction.save();
 
+    res.status(200).json(transaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getallTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find();
+    res.status(200).json(transactions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getAnyTransactionById = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+    });
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+    res.status(200).json(transaction);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteAnyTransaction = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+    });
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+    await transaction.deleteOne();
+    res.status(204).json();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateAnyTransaction = async (req, res) => {
+  try {
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+    });
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+    const { type, category, amount, notes, date } = req.body;
+    transaction.type = type || transaction.type;
+    transaction.category = category || transaction.category;
+    transaction.amount = amount ?? transaction.amount;
+    transaction.notes = notes || transaction.notes;
+    transaction.date = date || transaction.date;
+    await transaction.save();
     res.status(200).json(transaction);
   } catch (error) {
     res.status(500).json({ message: error.message });
