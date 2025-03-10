@@ -73,3 +73,78 @@ exports.loginAdmin = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteAnyUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    await user.deleteOne();
+    res.status(204).json();
+    } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+exports.updateAnyUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.id !== req.user.id) return res.status(401).json({ message: "Unauthorized" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+exports.updateUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.id !== req.user.id) return res.status(401).json({ message: "Unauthorized" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}; 
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.id!== req.user.id) return res.status(401).json({ message: "Unauthorized" });
+    await user.deleteOne();
+    res.status(204).json();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getAnyUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

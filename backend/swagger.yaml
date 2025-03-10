@@ -1082,6 +1082,194 @@ paths:
           description: Goal not found
         "500":
           description: Server error
+
+  /api/auth/all:
+    get:
+      summary: Get all users with their basic information
+      security:
+        - bearerAuth: []
+      tags:
+        - "Admin Users"
+      responses:
+        "200":
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to fetch users"
+
+  /api/auth/{id}:
+    get:
+      summary: Get a user by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "User Authentication"
+        - "Admin Authentication"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to retrieve
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User returned successfully
+        "404":
+          description: User not found
+        "500":
+          description: Server error
+
+    put:
+      summary: Update a user by ID
+      security:
+        - bearerAuth: []
+      tags:
+          - "User Authentication"
+          - "Admin Authentication"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to update
+          schema:
+            type: string
+      requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  password:
+                    type: string
+      responses:
+        "200":
+          description: User updated successfully
+        "400":
+          description: Bad request - Missing required fields
+        "404":
+          description: User not found
+        "500":
+           description: Server error
+
+    delete:
+      summary: Delete a user by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "User Authentication"
+        - "Admin Authentication"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to delete
+          schema:
+            type: string
+      responses:
+        "204":
+          description: User deleted successfully
+        "404":
+          description: User not found
+        "500":
+          description: Server error
+
+  /api/auth/any/{id}:
+    get:
+      summary: Get any user with the given ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "Admin Users"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to retrieve
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User returned successfully
+        "404":
+          description: User not found
+        "500":
+          description: Server error
+
+    put:
+      summary: Update any user with the given ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "Admin Users"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: User updated successfully
+        "400":
+          description: Bad request - Missing required fields
+        "404":
+          description: User not found
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete any user with the given ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "Admin Users"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to delete
+          schema:
+            type: string
+      responses:
+        "204":
+          description: User deleted successfully
+        "404":
+          description: User not found
+        "500":
+          description: Server error
       
 
 components:
