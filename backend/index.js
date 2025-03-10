@@ -17,6 +17,7 @@ const currencyController = require("./controllers/currencyController");
 const reportRoute = require("./routes/reportRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const notificationController = require("./controllers/notificationController");
+const goalroutes = require("./routes/goalRoutes");
 
 dotenv.config();
 connectDB();
@@ -52,6 +53,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/budgets", budgetRoutes);
+app.use("/api/goals", goalroutes);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

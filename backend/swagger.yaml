@@ -832,6 +832,158 @@ paths:
         "500":
           description: Server error
 
+  /api/goals/:
+    post:
+      summary: Create a personal goal
+      security:
+        - bearerAuth: []
+      tags:
+        - "User Goals"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Buy a new car"
+                targetAmount:
+                  type: number
+                  example: 5000
+                savedAmount:
+                  type: number
+                  example: 1000
+                deadline:
+                  type: string
+                  format: date
+                  example: "2022-12-31"
+                priority:
+                  type: number
+                  example: 3
+      responses:
+        "201":
+          description: Goal created successfully
+        "400":
+          description: Bad request - Missing required fields
+
+    get:
+      summary: Get all personal goals
+      security:
+        - bearerAuth: []
+      tags:
+        - "User Goals"
+      responses:
+        "200":
+          description: A list of personal goals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to fetch goals"
+
+  /api/goals/{id}/progress:
+    get:
+      summary: Get a personal goal progress by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "User Goals"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the goal to retrieve
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Goal returned successfully
+        "404":
+          description: Goal not found
+        "500":
+          description: Server error
+
+  /api/goals/{id}:
+    put:
+      summary: Update a personal goal by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "User Goals"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the goal to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Buy a new car"
+                targetAmount:
+                  type: number
+                  example: 5000
+                savedAmount:
+                  type: number
+                  example: 1000
+                deadline:
+                  type: string
+                  format: date
+                  example: "2022-12-31"
+                priority:
+                  type: number
+                  example: 3
+      responses:
+        "200":
+          description: Goal updated successfully
+        "400":
+          description: Bad request - Missing required fields
+        "404":
+          description: Goal not found
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete a personal goal by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "User Goals"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the goal to delete
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Goal deleted successfully
+        "404":
+          description: Goal not found
+        "500":
+          description: Server error    
+
 components:
   securitySchemes:
     bearerAuth:

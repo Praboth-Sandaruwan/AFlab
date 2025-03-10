@@ -1,12 +1,6 @@
 const Transaction = require("../models/Transaction");
 const Budget = require("../models/Budget");
-
-const currentDate = new Date();
-const currentMonth = currentDate.toLocaleString("default", {
-  month: "long",
-});
-const currentYear = currentDate.getFullYear();
-const currentMonthYear = `${currentMonth}-${currentYear}`;
+const Goal = require("../models/Goal");
 
 exports.createTransaction = async (req, res) => {
   try {
@@ -23,19 +17,10 @@ exports.createTransaction = async (req, res) => {
 
     await transaction.save();
 
-    const budget = await Budget.findOne({
-      userId: req.user.id,
-      category,
-      month: currentMonthYear,
-    });
-
-    if (budget) {
-      budget.spent += amount;
-      await budget.save();
-
-      if (budget.spent > budget.limit) {
-        console.log("Warning: Budget exceeded for", budget.category);
-      }
+    if (type === "expense") {
+      await updateBudget(req.user.id, category, amount, transaction.date);
+    } else if (type === "income") {
+      await updateFinancialGoals(transaction.userId, transaction.amount);
     }
 
     res.status(201).json(transaction);
@@ -90,16 +75,33 @@ exports.updateTransaction = async (req, res) => {
     transaction.notes = notes || transaction.notes;
     transaction.date = date || transaction.date;
 
+    if (
+      transaction.type !== type &&
+      prvAmnt !== 0 &&
+      transaction.category !== category
+    ) {
+      return res.status(400).json({
+        message:
+          "Cannot change transaction type/category after creation unless your previous expenses are 0",
+      });
+    }
+
     await transaction.save();
 
     const amountDifference = amount - prvAmnt;
 
-    await updateBudget(
-      req.user.id,
-      category,
-      amountDifference,
-      transaction.date
-    );
+    console.log(transaction);
+
+    if (transaction.type === "expense") {
+      await updateBudget(
+        transaction.userId,
+        transaction.category,
+        amountDifference,
+        transaction.date
+      );
+    } else if (transaction.type === "income") {
+      await updateFinancialGoals(req.user.id, amountDifference);
+    }
 
     res.status(200).json(transaction);
   } catch (error) {
@@ -131,6 +133,37 @@ const updateBudget = async (
   }
 };
 
+const updateFinancialGoals = async (userId, incomeAmount) => {
+  const goals = await Goal.find({ userId, status: "in-progress" }).sort({
+    priority: -1,
+  });
+
+  if (!goals.length) return;
+
+  let remainingIncome = incomeAmount;
+
+  if (incomeAmount <= 0) {
+    return;
+  }
+  const totalPriority = goals.reduce((sum, goal) => sum + goal.priority, 0);
+
+  for (const goal of goals) {
+    if (remainingIncome <= 0) break;
+
+    const allocation = (goal.priority / totalPriority) * incomeAmount;
+    const amountToSave = Math.min(
+      allocation,
+      goal.targetAmount - goal.savedAmount
+    );
+
+    goal.savedAmount += amountToSave;
+    if (goal.savedAmount >= goal.targetAmount) goal.status = "achieved";
+
+    remainingIncome -= amountToSave;
+    await goal.save();
+  }
+};
+
 exports.deleteTransaction = async (req, res) => {
   try {
     const transaction = await Transaction.findOne({
@@ -142,25 +175,19 @@ exports.deleteTransaction = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    const { category } = transaction;
-
     await transaction.deleteOne();
 
-    const budget = await Budget.findOne({
-      userId: req.user.id,
-      category,
-      month: `${transaction.date.toLocaleString("default", {
-        month: "long",
-      })}-${transaction.date.getFullYear()}`,
-    });
+    const amountDifference = 0 - transaction.amount;
 
-    if (budget) {
-      budget.spent -= transaction.amount;
-      await budget.save();
-
-      if (budget.spent > budget.limit) {
-        console.log("Warning: Budget exceeded for", budget.category);
-      }
+    if (transaction.type === "expense") {
+      updateBudget(
+        transaction.userId,
+        transaction.category,
+        amountDifference,
+        transaction.date
+      );
+    } else if (transaction.type === "income") {
+      updateFinancialGoals(transaction.userId, amountDifference);
     }
 
     res.status(204).json();
@@ -181,6 +208,10 @@ exports.addTags = async (req, res) => {
     }
 
     const { tags } = req.body;
+
+    if (!Array.isArray(tags)) {
+      return res.status(400).json({ message: "Tags must be an array." });
+    }
 
     transaction.tags = tags;
 
@@ -203,8 +234,13 @@ exports.removeTagByName = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    const tagName = req.body.tagName;
-    transaction.tags = transaction.tags.filter((tag) => tag !== tagName);
+    const { tags } = req.body;
+
+    if (!Array.isArray(tags)) {
+      return res.status(400).json({ message: "Tags must be an array." });
+    }
+
+    transaction.tags = transaction.tags.filter((tag) => !tags.includes(tag));
 
     await transaction.save();
 
@@ -253,7 +289,6 @@ exports.deleteAnyTransaction = async (req, res) => {
 };
 
 exports.updateAnyTransaction = async (req, res) => {
-
   let prvAmnt;
   let uid;
   let categor;
@@ -272,7 +307,7 @@ exports.updateAnyTransaction = async (req, res) => {
     categor = transaction.category;
     transactionDate = transaction.date;
 
-    const { type, category, amount, notes, date, } = req.body;
+    const { type, category, amount, notes, date } = req.body;
 
     const amountDifference = amount - prvAmnt;
 
@@ -284,12 +319,7 @@ exports.updateAnyTransaction = async (req, res) => {
 
     await transaction.save();
 
-    await updateBudget(
-      uid,
-      categor,
-      amountDifference,
-      transactionDate
-    );
+    await updateBudget(uid, categor, amountDifference, transactionDate);
 
     res.status(200).json(transaction);
   } catch (error) {
