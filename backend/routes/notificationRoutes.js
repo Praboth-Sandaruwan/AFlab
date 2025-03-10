@@ -33,7 +33,7 @@ router.get("/", authMiddleware, getNotifications);
  * @access user
  * @des mark all notifications as read
  * @route /api/notifications
- * @method PUT
+ * @method DELETE
  */
 router.delete("/", authMiddleware, deleteAllNotifications);
 

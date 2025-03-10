@@ -804,7 +804,19 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
+                  type: object          
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete all notifications for the logged-in user
+      security:
+        - bearerAuth: []
+      tags:
+        - Notifications
+      responses:
+        "204":
+          description: Notifications deleted successfully
         "500":
           description: Server error
 
@@ -833,6 +845,27 @@ paths:
                   message:
                     type: string
                     example: "Notification marked as read"
+        "404":
+          description: Notification not found
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete a notification by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - Notifications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the notification to delete
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Notification deleted successfully
         "404":
           description: Notification not found
         "500":
