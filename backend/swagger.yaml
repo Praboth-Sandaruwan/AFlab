@@ -21,6 +21,10 @@ tags:
     description: "Endpoints for managing budgets for user"
   - name: "Admin Budgets"
     description: "Endpoints for managing budgets for admin"
+  - name: "User Goals"
+    description: "Endpoints for managing personal goals for user"
+  - name: "Admin Goals"
+    description: "Endpoints for managing personal goals for admin"
   - name: "Notifications"
     description: "Endpoints for managing notifications"
 
@@ -983,6 +987,102 @@ paths:
           description: Goal not found
         "500":
           description: Server error    
+
+  /api/goals/all:
+    get:
+      summary: Get all personal goals for all users
+      security:
+        - bearerAuth: []
+      tags:
+        - "Admin Goals"
+      responses:
+        "200":
+          description: A list of personal goals for all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to fetch goals"
+
+  /api/goals/any/{id}:
+    put:
+      summary: Update any goal by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "Admin Goals"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the goal to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Buy a new car"
+                targetAmount:
+                  type: number
+                  example: 5000
+                savedAmount:
+                  type: number
+                  example: 1000
+                deadline:
+                  type: string
+                  format: date
+                  example: "2022-12-31"
+                priority:
+                  type: number
+                  example: 3
+      responses:
+        "200":
+          description: Goal updated successfully
+        "400":
+          description: Bad request - Missing required fields
+        "404":
+          description: Goal not found
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete any goal by ID
+      security:
+        - bearerAuth: []
+      tags:
+        - "Admin Goals"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the goal to delete
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Goal deleted successfully
+        "404":
+          description: Goal not found
+        "500":
+          description: Server error
+      
 
 components:
   securitySchemes:

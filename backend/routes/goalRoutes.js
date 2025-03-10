@@ -5,10 +5,35 @@ const {
   getGoals,
   updateGoal,
   deleteGoal,
-  getGoalProgress
+  getGoalProgress,
+  getAllGoals,
+  updateAnyGoal,
+  deleteAnyGoal,
 } = require("../controllers/goalController");
+const { adminMiddleware } = require("../middleware/adminMiddleware");
 
 const router = express.Router();
+
+/**
+ * @route   GET /api/goals/all
+ * @desc    Get all financial goals for the authenticated user (sorted by priority)
+ * @access  admin
+ */
+router.get("/all", adminMiddleware, getAllGoals);
+
+/**
+ * @route   PUT /api/goals/any/:id
+ * @desc    Update a financial goal (saved amount, priority, status)
+ * @access  admin
+ */
+router.put("/any/:id", adminMiddleware, updateAnyGoal);
+
+/**
+ * @route   DELETE /api/goals/any/:id
+ * @desc    Delete a financial goal
+ * @access  admin
+ */
+router.delete("/any/:id", adminMiddleware, deleteAnyGoal);
 
 /**
  * @route   POST /api/goals
