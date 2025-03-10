@@ -29,9 +29,7 @@ exports.createGoal = async (req, res) => {
 
 exports.getGoals = async (req, res) => {
   try {
-    const goals = await Goal.find({ userId: req.user.id }).sort({
-      priority: -1,
-    });
+    const goals = await Goal.find({ userId: req.user.id })
     res.status(200).json(goals);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -50,9 +48,12 @@ exports.updateGoal = async (req, res) => {
     goal.title = goal.title || title;
     goal.status = goal.status || status;
 
-    if (!goal || goal.userId.toString() !== req.user.id) {
-      return res.status(404).json({ message: "Goal not found" });
-    }
+    // if (!goal || goal.userId !== req.user.id) {
+    //   return res.status(404).json({ message: "Goal not found" });
+    // }
+    if(title) goal.title = title;
+    
+    if (targetAmount) goal.targetAmount = targetAmount;
 
     if (savedAmount) goal.savedAmount += savedAmount;
 

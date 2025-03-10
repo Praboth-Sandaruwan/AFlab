@@ -1,7 +1,7 @@
 const request = require("supertest");
 const mongoose = require("mongoose");
 const app = require("../index");
-const Budget = require("../models/Budget");
+const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { generateToken } = require("../middleware/generateToken");
 
@@ -9,14 +9,13 @@ let user, token;
 let server;
 
 beforeAll(async () => {
-  
-  server = app.listen(5020); 
-  
+    
+  server = app.listen(5010);
+   
   await mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
-
 
   user = new User({
     name: "Test Admin",
@@ -26,75 +25,81 @@ beforeAll(async () => {
   });
   await user.save();
   token = generateToken(user._id);
+
 });
 
 afterAll(async () => {
-  await Budget.deleteMany();
+  await Notification.deleteMany();
   await User.deleteMany();
   await mongoose.connection.close();
   server.close();
 });
 
-describe("Budget API", () => {
-  let budgetId;
+describe("Notification API", () => {
+  let notificationId;
 
-  it("should create a new budget", async () => {
+  it("should create a new notification", async () => {
     const res = await request(app)
-      .post("/api/budgets")
+      .post("/api/notifications")
       .set("Authorization", `Bearer ${token}`)
-      .send({ category: "Food", limit: 500, month: "March-2025" });
+      .send({ userId: user._id, message: "Hello test message" });
 
     expect(res.statusCode).toBe(201);
-    expect(res.body).toHaveProperty("_id");
-    budgetId = res.body._id;
+    expect(res.body.notification).toHaveProperty("_id");
+    notificationId = res.body.notification._id;
   });
 
-  it("should fetch all budgets", async () => {
+  it("should fetch all notifications", async () => {
     const res = await request(app)
-      .get("/api/budgets")
+      .get("/api/notifications")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
   });
 
-  it("should update a budget", async () => {
+  it("should update a notification", async () => {
     const res = await request(app)
-      .put(`/api/budgets/${budgetId}`)
+      .put(`/api/notifications/${notificationId}`)
       .set("Authorization", `Bearer ${token}`)
-      .send({ limit: 600 });
+      .send({ read: true });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.limit).toBe(600);
+    expect(res.body.read).toBe(true);
   });
 
-  it("should delete a budget", async () => {
+  it("should delete a notification", async () => {
     const res = await request(app)
-      .delete(`/api/budgets/${budgetId}`)
+      .delete(`/api/notifications/${notificationId}`)
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("Notification deleted");
   });
 
-  it("should return 404 for a non-existent budget", async () => {
+  it("should delete all notifications", async () => {
     const res = await request(app)
-      .get("/api/budgets/6060606060606060")
+      .delete("/api/notifications")
       .set("Authorization", `Bearer ${token}`);
-    expect(res.statusCode).toBe(500);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("Notifications cleared");
   });
 
-  it("should return 500 on invalid budget update", async () => {
+  it("should return 500 on invalid notification update", async () => {
     const res = await request(app)
-      .put("/api/budgets/invalidId")
+      .put("/api/notifications/6060606060606060")
       .set("Authorization", `Bearer ${token}`)
-      .send({ limit: 700 });
+      .send({ read: true });
+
     expect(res.statusCode).toBe(500);
   });
 
   it("should return 401 for unauthorized access", async () => {
     const res = await request(app)
-      .get("/api/budgets")
+      .get("/api/notifications")
       .set("Authorization", `Bearer ${token}1`);
+
     expect(res.statusCode).toBe(401);
   });
 });
