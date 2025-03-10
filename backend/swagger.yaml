@@ -13,6 +13,8 @@ tags:
     description: "Endpoints related to user authentication"
   - name: "Admin Authentication"
     description: "Endpoints related to admin authentication"
+  - name: "Admin Users"
+    description: "Endpoints related to user management"
   - name: "User Transactions"
     description: "Endpoints for managing transactions for user"
   - name: "Admin Transactions"
