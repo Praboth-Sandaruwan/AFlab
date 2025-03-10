@@ -6,13 +6,13 @@ const generateMonthlyReport = async (req, res) => {
     
     const userId = req.user.id;
 
-    // Extract month and year from query params
+
     const { month, year } = req.query;
     if (!month || !year) {
       return res.status(400).json({ message: "Month and year are required." });
     }
 
-    // Fetch transactions from MongoDB
+
     const transactions = await Transaction.find({
       userId,
       date: {
@@ -21,7 +21,7 @@ const generateMonthlyReport = async (req, res) => {
       },
     });
 
-    // Calculate totals
+
     const totalIncome = transactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
@@ -30,7 +30,6 @@ const generateMonthlyReport = async (req, res) => {
       .reduce((sum, t) => sum + t.amount, 0);
     const netSavings = totalIncome - totalExpenses;
 
-    // Generate HTML for PDF
     const htmlContent = `
         <html>
             <head>
@@ -70,7 +69,7 @@ const generateMonthlyReport = async (req, res) => {
             </body>
         </html>`;
 
-    // Generate PDF using Puppeteer
+
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: "networkidle0" });
@@ -78,7 +77,7 @@ const generateMonthlyReport = async (req, res) => {
 
     await browser.close();
 
-    // Send PDF response
+
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=report_${month}_${year}.pdf`,
