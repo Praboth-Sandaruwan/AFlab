@@ -49,7 +49,7 @@ exports.updateGoal = async (req, res) => {
     goal.status = goal.status || status;
 
     // if (!goal || goal.userId !== req.user.id) {
-    //   return res.status(404).json({ message: "Goal not found" });
+    //   return res.status(404).json({ message: "Goal not found" });         // commented for testing purposes
     // }
     if(title) goal.title = title;
     
