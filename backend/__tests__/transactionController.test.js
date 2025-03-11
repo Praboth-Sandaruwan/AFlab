@@ -7,6 +7,7 @@ const {
   generateToken,
   generateUserToken,
 } = require("../middleware/generateToken");
+const { addTags } = require("../controllers/transactionController");
 
 let user, admin, userToken, adminToken;
 let server;
@@ -78,7 +79,7 @@ describe("Transaction API", () => {
         recurring: {
           isRecurring: true,
           period: "weekly",
-        }, 
+        },
       });
 
     console.log(res.body);
@@ -131,7 +132,6 @@ describe("Transaction API", () => {
     expect(res.statusCode).toBe(204);
   });
 
-  // Admin tests
   it("should allow admin to get all transactions", async () => {
     const res = await request(app)
       .get("/api/transactions/all")
@@ -199,5 +199,50 @@ describe("Transaction API", () => {
       .set("Authorization", `Bearer ${adminToken}`);
 
     expect(res.statusCode).toBe(204);
+  });
+
+  it("should allow user to add tags", async () => {
+    const newTransaction = new Transaction({
+      userId: user._id,
+      type: "expense",
+      category: "Gaming",
+      amount: 75,
+      notes: "New game purchase",
+      date: new Date(),
+    });
+
+    await newTransaction.save();
+
+    const res = await request(app)
+      .put(`/api/transactions/${newTransaction._id}/tags`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ tags: ["games", "entertainment"] });
+
+    console.log(res.body);
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("should allow user to delete tags", async () => {
+    const newTransaction = new Transaction({
+      userId: user._id,
+      type: "expense",
+      category: "Gaming",
+      amount: 75,
+      notes: "New game purchase",
+      tags: ["games", "entertainment"],
+      date: new Date(),
+    });
+
+    await newTransaction.save();
+
+    const res = await request(app)
+      .delete(`/api/transactions/${newTransaction._id}/tags`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ tags: ["games", "entertainment"] });
+
+    console.log(res.body);
+
+    expect(res.statusCode).toBe(200);
   });
 });

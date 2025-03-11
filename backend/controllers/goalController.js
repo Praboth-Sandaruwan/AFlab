@@ -51,9 +51,14 @@ exports.updateGoal = async (req, res) => {
     goal.title = goal.title || title;
     goal.status = goal.status || status;
 
-    // if (!goal || goal.userId !== req.user.id) {
-    //   return res.status(404).json({ message: "Goal not found" });         // commented for testing purposes
+    if (!goal) {
+      return res.status(404).json({ message: "Goal not found" });         
+    }
+
+    // if(goal.userId !== req.user.id){
+    //   return res.status(401).json({ message: "Unauthorized" });  
     // }
+
     if(title) goal.title = title;
     
     if (targetAmount) goal.targetAmount = targetAmount;
@@ -134,12 +139,12 @@ exports.updateAnyGoal = async (req, res) => {
     if (!goal) {
       return res.status(404).json({ message: "Goal not found" });
     }
-    goal.priority = goal.priority || priority;
-    goal.targetAmount = goal.targetAmount || targetAmount;
-    goal.deadline = goal.deadline || deadline;
-    goal.title = goal.title || title;
-    goal.status = goal.status || status;
-    goal.savedAmount = goal.savedAmount || savedAmount;
+    goal.priority = priority || goal.priority;
+    goal.targetAmount = targetAmount || goal.targetAmount;
+    goal.deadline = deadline || goal.deadline;
+    goal.title = title || goal.title;
+    goal.status = status || goal.status;
+    goal.savedAmount = savedAmount || goal.savedAmount;
 
     await goal.save();
 

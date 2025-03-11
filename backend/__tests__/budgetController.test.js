@@ -7,16 +7,15 @@ const { generateToken } = require("../middleware/generateToken");
 
 let user, token;
 let server;
+let budgetId;
 
 beforeAll(async () => {
-  
-  server = app.listen(5020); 
-  
+  server = app.listen(5020);
+
   await mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
-
 
   user = new User({
     name: "Test Admin",
@@ -28,6 +27,17 @@ beforeAll(async () => {
   token = generateToken(user._id);
 });
 
+beforeEach(async () => {
+  const budget = new Budget({
+    category: "Food",
+    limit: 500,
+    month: "March-2025",
+    userId: user._id,
+  });
+  await budget.save();
+  budgetId = budget._id;
+});
+
 afterAll(async () => {
   await Budget.deleteMany();
   await User.deleteMany();
@@ -36,7 +46,6 @@ afterAll(async () => {
 });
 
 describe("Budget API", () => {
-  let budgetId;
 
   it("should create a new budget", async () => {
     const res = await request(app)
@@ -46,10 +55,18 @@ describe("Budget API", () => {
 
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty("_id");
-    budgetId = res.body._id;
   });
 
-  it("should fetch all budgets", async () => {
+  it("should get all budgets of every user", async () => {
+    const res = await request(app)
+      .get("/api/budgets/all")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.length).toBeGreaterThan(0);
+  });
+
+  it("should fetch all budgets of a authorised user", async () => {
     const res = await request(app)
       .get("/api/budgets")
       .set("Authorization", `Bearer ${token}`);
@@ -58,7 +75,16 @@ describe("Budget API", () => {
     expect(res.body.length).toBeGreaterThan(0);
   });
 
-  it("should update a budget", async () => {
+  it("should get a specific budget of authorised user", async () => {
+    const res = await request(app)
+      .get(`/api/budgets/${budgetId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("_id");
+  });
+
+  it("should update a specific budget of authorised user", async () => {
     const res = await request(app)
       .put(`/api/budgets/${budgetId}`)
       .set("Authorization", `Bearer ${token}`)
@@ -68,9 +94,36 @@ describe("Budget API", () => {
     expect(res.body.limit).toBe(600);
   });
 
-  it("should delete a budget", async () => {
+  it("should delete a specific budget of authorised user", async () => {
     const res = await request(app)
       .delete(`/api/budgets/${budgetId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("should get any budget with id", async () => {
+    const res = await request(app)
+      .get(`/api/budgets/any/${budgetId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("_id");
+  });
+
+  it("should update any budget with id", async () => {
+    const res = await request(app)
+      .put(`/api/budgets/any/${budgetId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ limit: 600 });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.limit).toBe(600);
+  });
+
+  it("should delete any budget with id", async () => {
+    const res = await request(app)
+      .delete(`/api/budgets/any/${budgetId}`)
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.statusCode).toBe(200);
