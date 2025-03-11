@@ -1,5 +1,8 @@
 const Goal = require("../models/Goal");
-const Transaction = require("../models/Transaction");
+const {
+  goalReachedNotification,
+  goalExpiredNotification,
+} = require("../middleware/notificationMiddleware");
 
 exports.createGoal = async (req, res) => {
   try {
@@ -68,10 +71,12 @@ exports.updateGoal = async (req, res) => {
 
     if (goal.savedAmount >= goal.targetAmount) {
       goal.status = "achieved";
+      goalReachedNotification(goal.userId, goal.title);
     }
 
     if (new Date(goal.deadline) < new Date() && goal.status !== "achieved") {
       goal.status = "expired";
+      goalExpiredNotification(goal.userId, goal.title);
     }
 
     await goal.save();
