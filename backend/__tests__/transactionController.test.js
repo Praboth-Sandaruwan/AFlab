@@ -66,6 +66,28 @@ describe("Transaction API", () => {
     transactionId = res.body._id;
   });
 
+  it("should create a recurring transaction", async () => {
+    const res = await request(app)
+      .post("/api/transactions")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        type: "expense",
+        category: "Groceries",
+        amount: 50,
+        notes: "Weekly grocery shopping",
+        recurring: {
+          isRecurring: true,
+          period: "weekly",
+        }, 
+      });
+
+    console.log(res.body);
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body).toHaveProperty("_id");
+    expect(res.body.recurring.isRecurring).toBe(true);
+  });
+
   it("should get all transactions for the logged-in user", async () => {
     const res = await request(app)
       .get("/api/transactions")

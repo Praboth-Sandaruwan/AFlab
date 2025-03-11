@@ -5,7 +5,7 @@ const { updateBudget } = require("../middleware/budgetMiddleware");
 
 exports.createTransaction = async (req, res) => {
   try {
-    const { type, category, amount, notes } = req.body;
+    const { type, category, amount, notes, date, recurring, tags } = req.body;
 
     const transaction = new Transaction({
       userId: req.user.id,
@@ -13,7 +13,9 @@ exports.createTransaction = async (req, res) => {
       category,
       amount,
       notes,
-      date: new Date(),
+      date: date || new Date(),
+      recurring: recurring || {},
+      tags: tags || [],
     });
 
     await transaction.save();

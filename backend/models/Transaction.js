@@ -8,12 +8,12 @@ const TransactionSchema = new mongoose.Schema({
   date: { type: Date, required: true },
   recurring: {
     type: {
-      isRecurring: { type: Boolean },
+      isRecurring: { type: Boolean, default: false},
       period: {
         type: String,
         enum: ["daily", "weekly", "monthly", "yearly"],
       },
-      isPaidNow: { type: Boolean },
+      isPaidNow: { type: Boolean, default: false },
     },
     default: {},
   },
