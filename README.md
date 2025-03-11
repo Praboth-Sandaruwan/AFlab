@@ -28,8 +28,12 @@
                - Make sure you have logged in as admin and have entered the token for authorisation
        - In the console of client terminal you can see the relevant message
 
-#
-#
+#    :For performance testing
+       - Type "artillery run load-test.yml" to run the artillary tests
+       - Navigate to : http://localhost:5000/metrics to see the metrics
+#    
+#    :For security report
+       - Open "./security report/2025-03-11-ZAP-Report-localhost.html"
 #
 #
 #
