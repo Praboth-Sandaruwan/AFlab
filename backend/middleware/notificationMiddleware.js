@@ -14,6 +14,7 @@ const setSocketIo = (socketIoInstance) => {
       for (let [key, value] of userSocketMap.entries()) {
         if (value === socket.id) {
           userSocketMap.delete(key);
+          console.log(`User ${userId} disconnected with socket id ${socket.id}`);
           break;
         }
       }
