@@ -1,27 +1,5 @@
 const Notification = require("../models/Notification");
-
-let io;
-const userSocketMap = new Map();
-
-exports.setSocketIo = (socketIoInstance) => {
-  io = socketIoInstance;
-
-  io.on("connection", (socket) => {
-    socket.on("register", (userId) => {
-      userSocketMap.set(userId, socket.id);
-      console.log(`User ${userId} registered with socket id ${socket.id}`);
-    });
-
-    socket.on("disconnect", () => {
-      for (let [key, value] of userSocketMap.entries()) {
-        if (value === socket.id) {
-          userSocketMap.delete(key);
-          break;
-        }
-      }
-    });
-  });
-};
+const { userSocketMap, getIo } = require("../middleware/notificationMiddleware");
 
 exports.createNotification = async (req, res) => {
   const { userId, message } = req.body;
@@ -38,8 +16,17 @@ exports.createNotification = async (req, res) => {
     await notification.save();
 
     const socketId = userSocketMap.get(userId);
+    const io = getIo();
+
     if (socketId) {
-      io.to(socketId).emit("notification", notification);
+      if (io) {
+        console.log(`Sending notification to socket ID: ${socketId}`);
+        io.to(socketId).emit("notification", notification);
+      } else {
+        console.error("Socket.io instance is not initialized");
+      }
+    } else {
+      console.warn(`No socket ID found for user ID: ${userId}`);
     }
 
     res.status(201).json({ success: true, notification });
@@ -90,7 +77,7 @@ exports.deleteNotification = async (req, res) => {
 exports.deleteAllNotifications = async (req, res) => {
   try {
     await Notification.deleteMany({ userId: req.user.id });
-    res.status(200).json({ message: "Notifications cleared"});
+    res.status(200).json({ message: "Notifications cleared" });
   } catch (error) {
     res.status(500).json({ error: "Error deleting notifications" });
   }

@@ -12,5 +12,5 @@ socket.on("connect_error", (error) => {
 });
 
 socket.on("notification", (notification) => {
-  console.log("Received Notification:", notification);
+  console.log("Received Notification:", notification.message);
 });

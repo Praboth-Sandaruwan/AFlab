@@ -3,7 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 
-const notificationController = require("./controllers/notificationController");
+const { setSocketIo } = require("./middleware/notificationMiddleware");
 
 app.use(cors());
 
@@ -12,9 +12,11 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
+
+setSocketIo(io);
 
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
@@ -24,8 +26,6 @@ io.on("connection", (socket) => {
     socket.emit("Greeting", { message: `Welcome user ${userId}` });
   });
 });
-
-notificationController.setSocketIo(io);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
