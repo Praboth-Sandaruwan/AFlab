@@ -32,7 +32,7 @@ exports.createNotification = async (req, res) => {
       return res.status(400).json({ error: "Message must be a string" });
     }
 
-    // console.log("Notification message:", message);
+    console.log("Notification message:", message);
 
     const notification = new Notification({ userId, message });
     await notification.save();
