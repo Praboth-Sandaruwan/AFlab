@@ -1,0 +1,387 @@
+config:
+  target: 'http://localhost:5000'  
+  phases:
+    - duration: 60
+      arrivalRate: 5  
+    - duration: 120
+      arrivalRate: 10 
+    - duration: 60
+      arrivalRate: 1  
+
+scenarios:
+  # User Register
+  - name: "User Registration"
+    flow:
+      - post:
+          url: "/api/auth/register"
+          json:
+            name: "Test User"
+            email: "testuser@example.com"
+            password: "TestPassword123"
+          headers:
+            Content-Type: "application/json"
+
+  # Admin Register
+  - name: "Admin Registration"
+    flow:
+      - post:
+          url: "/api/auth/register/admin"
+          json:
+            name: "Test Admin"
+            email: "testadmin@example.com"
+            password: "TestPassword123"
+            role: "admin"
+          headers:
+            Content-Type: "application/json"
+
+  # User Login
+  - name: "User Login"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "testuser@example.com"
+            password: "TestPassword123"
+          headers:
+            Content-Type: "application/json"
+          capture:
+            - json: "$.token"
+              as: "admin_token"
+
+  # Admin Login
+  - name: "Admin Login"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "testadmin@example.com"
+            password: "TestPassword123"
+          headers:
+            Content-Type: "application/json"
+          capture:
+            - json: "$.token"
+              as: "auth_token"
+
+  # Create Transaction
+  - name: "Create Transaction"
+    flow:
+      - post:
+          url: "/api/transactions"
+          json:
+            type: "income"
+            category: "Salary"
+            amount: 1500
+            notes: "Monthly salary"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Get All Transactions
+  - name: "Get All Transactions"
+    flow:
+      - get:
+          url: "/api/transactions"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Monthly Report Generation
+  - name: "Generate Monthly Report"
+    flow:
+      - get:
+          url: "/api/report/monthly"
+          qs:
+            month: "03"
+            year: "2025"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Create Notification
+  - name: "Create Notification"
+    flow:
+      - post:
+          url: "/api/notifications"
+          json:
+            userId: "67c9298a4b7912adf99d8672"
+            message: "Your book request has been approved!"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Get All Notifications
+  - name: "Get All Notifications"
+    flow:
+      - get:
+          url: "/api/notifications"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Mark Notification as Read
+  - name: "Mark Notification as Read"
+    flow:
+      - put:
+          url: "/api/notifications/{{ notification_id }}"
+          json: {}
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Delete Notification by ID
+  - name: "Delete Notification by ID"
+    flow:
+      - delete:
+          url: "/api/notifications/{{ notification_id }}"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Delete All Notifications
+  - name: "Delete All Notifications"
+    flow:
+      - delete:
+          url: "/api/notifications"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Create Goal
+  - name: "Create Personal Goal"
+    flow:
+      - post:
+          url: "/api/goals/"
+          json:
+            title: "Buy a new car"
+            targetAmount: 5000
+            savedAmount: 1000
+            deadline: "2025-12-31"
+            priority: 3
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Get All Goals
+  - name: "Get All Personal Goals"
+    flow:
+      - get:
+          url: "/api/goals"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Update Goal
+  - name: "Update Personal Goal"
+    flow:
+      - put:
+          url: "/api/goals/{{ goal_id }}"
+          json:
+            title: "Buy a new house"
+            targetAmount: 8000
+            savedAmount: 2000
+            deadline: "2026-12-31"
+            priority: 2
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Delete Goal
+  - name: "Delete Personal Goal"
+    flow:
+      - delete:
+          url: "/api/goals/{{ goal_id }}"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Admin Get All Goals
+  - name: "Admin Get All Goals"
+    flow:
+      - get:
+          url: "/api/goals/all"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Admin Get Goal by ID
+  - name: "Admin Get Goal by ID"
+    flow:
+      - get:
+          url: "/api/goals/any/{{ goal_id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Admin Update Goal
+  - name: "Admin Update Goal"
+    flow:
+      - put:
+          url: "/api/goals/any/{{ goal_id }}"
+          json:
+            title: "Buy a vacation home"
+            targetAmount: 10000
+            savedAmount: 5000
+            deadline: "2026-12-31"
+            priority: 1
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Admin Delete Goal
+  - name: "Admin Delete Goal"
+    flow:
+      - delete:
+          url: "/api/goals/any/{{ goal_id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Create Budget
+  - name: "Create Budget"
+    flow:
+      - post:
+          url: "/api/budgets"
+          json:
+            category: "Groceries"
+            limit: 300
+            month: "03-2025"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Get All Budgets
+  - name: "Get All Budgets"
+    flow:
+      - get:
+          url: "/api/budgets"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Get One Budget by ID
+  - name: "Get One Budget"
+    flow:
+      - get:
+          url: "/api/budgets/{{ budget_id }}"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Update Budget
+  - name: "Update Budget"
+    flow:
+      - put:
+          url: "/api/budgets/{{ budget_id }}"
+          json:
+            category: "Entertainment"
+            limit: 150
+            month: "03-2025"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Delete Budget
+  - name: "Delete Budget"
+    flow:
+      - delete:
+          url: "/api/budgets/{{ budget_id }}"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+
+  # Admin Get All Budgets
+  - name: "Admin Get All Budgets"
+    flow:
+      - get:
+          url: "/api/budgets/all"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Admin Get Budget by ID
+  - name: "Admin Get Budget by ID"
+    flow:
+      - get:
+          url: "/api/budgets/any/{{ budget_id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Admin Update Budget
+  - name: "Admin Update Budget"
+    flow:
+      - put:
+          url: "/api/budgets/any/{{ budget_id }}"
+          json:
+            category: "Utilities"
+            limit: 200
+            month: "03-2025"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Admin Delete Budget
+  - name: "Admin Delete Budget"
+    flow:
+      - delete:
+          url: "/api/budgets/any/{{ budget_id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Get Exchange Rate
+  - name: "Get Exchange Rate"
+    flow:
+      - get:
+          url: "/api/currencyEx"
+          qs:
+            base: "LKR"
+            target: "USD"
+
+  # Get All Users
+  - name: "Get All Users"
+    flow:
+      - get:
+          url: "/api/auth/all"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # User retreave Operation
+  - name: "Get User by ID"
+    flow:
+      - get:
+          url: "/api/auth/{{ id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # User update Operation
+  - name: "Update User by ID"
+    flow:
+      - put:
+          url: "/api/auth/{{ id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+          body:
+            name: "{{ name }}"
+            email: "{{ email }}"
+            password: "{{ password }}"
+
+  # User delete Operation
+  - name: "Delete User by ID"
+    flow:
+      - delete:
+          url: "/api/auth/{{ id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Admin user retreave Operation
+  - name: "Get Any User by ID"
+    flow:
+      - get:
+          url: "/api/auth/any/{{ id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+
+  # Admin user update Operation
+  - name: "Update Any User by ID"
+    flow:
+      - put:
+          url: "/api/auth/any/{{ id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
+          body:
+            name: "{{ name }}"
+            email: "{{ email }}"
+            password: "{{ password }}"
+
+  # Admin user delete Operation
+  - name: "Delete Any User by ID"
+    flow:
+      - delete:
+          url: "/api/auth/any/{{ id }}"
+          headers:
+            Authorization: "Bearer {{ admin_token }}"
